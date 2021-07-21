@@ -6,7 +6,7 @@ let width = window.innerWidth;
 let height = window.innerHeight;
 
 const config = {
-    type: Phaser.AUTO,
+    type: Phaser.CANVAS,
     width,
     height,
     backgroundColor: '#35654d',
