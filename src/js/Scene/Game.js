@@ -4,12 +4,11 @@ import Player from '../Object/Player';
 import { DECK_POSITION, PLAYER_POSITION } from '../Reference/Position';
 import Deck from '../Object/Deck';
 import Image from '../Loader/Image';
-import { SINGLE_CARD_ONLY, THREE_CARD_DRAW } from '../Constant/GamePhase';
-import validateCard from '../Utils/Rules';
+import { DRAW_ANYTHING, PAIR_CARD_ONLY, SINGLE_CARD_ONLY, THREE_CARD_DRAW } from '../Constant/GamePhase';
+import { validateCard, rankingValue } from '../Utils/Rules';
 
 const MAX_PLAYER = 4;
 const MAX_PLAYER_CARD = 13;
-
 export default class Game extends Phaser.Scene {
     constructor() {
         super();
@@ -18,7 +17,8 @@ export default class Game extends Phaser.Scene {
             play: false,
             turn: 0,
             players: [],
-            phase: SINGLE_CARD_ONLY
+            phase: DRAW_ANYTHING,
+            drawed: [],
         }
         this.player = 0;
         this.decks = new Deck();
@@ -61,14 +61,24 @@ export default class Game extends Phaser.Scene {
         this.input.keyboard.on('keyup-SPACE', () => {
             if (this.state.play && this.state.turn == this.player) {
                 let selected_cards = this.state.players[this.player].cards.filter(card => card.selected);
+                let sprites_selected = selected_cards.map(card => card.sprite);
 
                 // Validate selected cards
-                if (validateCard(this.state.phase, selected_cards)) {
-                    let sprites_selected = selected_cards.map(card => card.sprite);
+                if (selected_cards.length > 0 && validateCard(this.state.phase, selected_cards)) {
+                    // Clear drawed card
+                    this.state.drawed.forEach((card) => {
+                        card.sprite.destroy();
+                    })
+
+                    // Add seleected card to drawed
+                    this.state.drawed = selected_cards;
+                    this.state.players[this.player].cards = this.state.players[this.player].cards.filter(card => !card.selected);
+
+                    // Animate selected card to drawed
                     this.tweens.add({
                         targets: sprites_selected,
                         x: function (target, key, value, targetIndex, totalTargets, tween) {
-                            return DECK_POSITION.x + (targetIndex - Math.floor(totalTargets / 2)) * 40;
+                            return DECK_POSITION.x + (targetIndex - (totalTargets - 1) / 2) * 160;
                         },
                         y: DECK_POSITION.y,
                         duration: 200,
@@ -78,7 +88,6 @@ export default class Game extends Phaser.Scene {
                     })
                 }
                 else { // Selected cards not valid
-                    let sprites_selected = selected_cards.map(card => card.sprite);
                     this.tweens.add({
                         targets: sprites_selected,
                         y: PLAYER_POSITION[0].y,
@@ -93,19 +102,10 @@ export default class Game extends Phaser.Scene {
     }
 
     update(delta) {
-        // Shuffle Cards
-        // if (!this.state.shuffle) {
-        //     this.shuffle();
-        // }
-        // else { // After shuffle cards
-        //     this.giveCard();
-        //     this.openCard();
-        // }
-
-        // Play Time
-        // if (this.state.play) {
-
-        // }
+        // Arrange Card
+        if (this.state.play) {
+            this.arrangeCard();
+        }
     }
 
     shuffle() {
@@ -205,7 +205,16 @@ export default class Game extends Phaser.Scene {
         });
     }
 
-    drawCard() {
-
+    arrangeCard() {
+        let number_card = this.state.players[this.player].cards.length;
+        for (let idx = 0; idx < number_card; idx++) {
+            if (!this.state.players[this.player].cards[idx].selected) {
+                this.animation = this.tweens.add({
+                    targets: this.state.players[this.player].cards[idx].sprite,
+                    x: PLAYER_POSITION[0].x + (idx - Math.floor(number_card / 2)) * 40,
+                    duration: 200,
+                })
+            }
+        }
     }
 }
