@@ -22,6 +22,8 @@ export default class Game extends Phaser.Scene {
         }
         this.player = 0;
         this.decks = new Deck();
+        this.phase_indicator = null;
+        this.turn_indicator = null;
     }
 
     preload() {
@@ -56,6 +58,13 @@ export default class Game extends Phaser.Scene {
         this.giveCard();
         this.openCard();
 
+        // Render Phase Indicator
+        const style = { font: "bold 32px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
+        this.phase_indicator = this.add.text(DECK_POSITION.x, DECK_POSITION.y - 200, '', style).setOrigin(0.5);
+
+        // Render Turn Indicator
+        this.turn_indicator = this.add.ellipse(DECK_POSITION.x, DECK_POSITION.y, 20, 20, 0xff0000);
+
         // Add Event Listener
         // Draw Card event
         this.input.keyboard.on('keyup-SPACE', () => {
@@ -64,7 +73,13 @@ export default class Game extends Phaser.Scene {
                 let sprites_selected = selected_cards.map(card => card.sprite);
 
                 // Validate selected cards
-                if (selected_cards.length > 0 && validateCard(this.state.phase, selected_cards)) {
+                let validation = validateCard(this.state.phase, selected_cards);
+                if (selected_cards.length > 0 && validation) {
+                    // Change phase
+                    if (this.state.phase == DRAW_ANYTHING) {
+                        this.state.phase = validation;
+                    }
+
                     // Clear drawed card
                     this.state.drawed.forEach((card) => {
                         card.sprite.destroy();
@@ -99,12 +114,21 @@ export default class Game extends Phaser.Scene {
                 }
             }
         })
+
+        // SKIP EVENT
+        this.input.keyboard.on('keyup-ESC', () => {
+            if (this.state.turn == this.player) {
+                this.state.turn = (this.state.turn + 1) % MAX_PLAYER;
+            }
+        })
     }
 
     update(delta) {
         // Arrange Card
         if (this.state.play) {
             this.arrangeCard();
+            this.showPhaseIndicator();
+            this.showTurnIndicator();
         }
     }
 
@@ -120,22 +144,22 @@ export default class Game extends Phaser.Scene {
         for (let player = 0; player < MAX_PLAYER; player++) {
             for (let idx = 0; idx < MAX_PLAYER_CARD; idx++) {
                 let x, y, angle;
-                if (player == (this.player % 4)) {
+                if (player == (this.player % MAX_PLAYER)) {
                     x = PLAYER_POSITION[0].x + (idx - Math.floor(MAX_PLAYER_CARD / 2)) * 40;
                     y = PLAYER_POSITION[0].y;
                     angle = 0;
                 }
-                else if (player == ((this.player + 1) % 4)) {
+                else if (player == ((this.player + 1) % MAX_PLAYER)) {
                     x = PLAYER_POSITION[1].x;
                     y = PLAYER_POSITION[1].y + (idx - Math.floor(MAX_PLAYER_CARD / 2)) * 40;
                     angle = 90;
                 }
-                else if (player == ((this.player + 2) % 4)) {
+                else if (player == ((this.player + 2) % MAX_PLAYER)) {
                     x = PLAYER_POSITION[2].x - (idx - Math.floor(MAX_PLAYER_CARD / 2)) * 40;
                     y = PLAYER_POSITION[2].y;
                     angle = 0;
                 }
-                else if (player == ((this.player + 3) % 4)) {
+                else if (player == ((this.player + 3) % MAX_PLAYER)) {
                     x = PLAYER_POSITION[3].x;
                     y = PLAYER_POSITION[3].y - (idx - Math.floor(MAX_PLAYER_CARD / 2)) * 40;
                     angle = 90;
@@ -216,5 +240,31 @@ export default class Game extends Phaser.Scene {
                 })
             }
         }
+    }
+
+    showPhaseIndicator() {
+        this.phase_indicator.setText(this.state.phase);
+    }
+
+    showTurnIndicator() {
+        let x, y;
+        if (this.state.turn == 0) {
+            x = PLAYER_POSITION[0].x
+            y = PLAYER_POSITION[0].y - 200
+        }
+        else if (this.state.turn == 1) {
+            x = PLAYER_POSITION[1].x - 200
+            y = PLAYER_POSITION[1].y
+        }
+        else if (this.state.turn == 2) {
+            x = PLAYER_POSITION[2].x
+            y = PLAYER_POSITION[2].y + 200
+        }
+        else if (this.state.turn == 3) {
+            x = PLAYER_POSITION[3].x + 200
+            y = PLAYER_POSITION[3].y
+        }
+        this.turn_indicator.setX(x);
+        this.turn_indicator.setY(y);
     }
 }
