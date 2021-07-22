@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import c2 from '../../assets/images/2C.png';
 import Player from '../Object/Player';
 import { DECK_POSITION, PLAYER_POSITION } from '../Reference/Position';
 import Deck from '../Object/Deck';
@@ -11,14 +10,16 @@ const MAX_PLAYER = 4;
 const MAX_PLAYER_CARD = 13;
 export default class Game extends Phaser.Scene {
     constructor() {
-        super();
+        super({ key: 'Game' });
         this.state = {
             // shuffle: false,
             play: false,
             turn: 0,
             players: [],
-            phase: DRAW_ANYTHING,
+            phase: THREE_CARD_DRAW,
             drawed: [],
+            first_player: -1,
+            skip: [false, false, false, false],
         }
         this.player = 0;
         this.decks = new Deck();
@@ -46,6 +47,7 @@ export default class Game extends Phaser.Scene {
                 x: DECK_POSITION.x,
                 y: DECK_POSITION.y,
                 key: 'back',
+                // key: `${card.key}`,
                 add: true,
                 scale: {
                     x: 0.2,
@@ -59,17 +61,19 @@ export default class Game extends Phaser.Scene {
         this.openCard();
 
         // Render Phase Indicator
-        const style = { font: "bold 32px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
+        const style = { font: "bold 32px sans-serif", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
         this.phase_indicator = this.add.text(DECK_POSITION.x, DECK_POSITION.y - 200, '', style).setOrigin(0.5);
 
         // Render Turn Indicator
-        this.turn_indicator = this.add.ellipse(DECK_POSITION.x, DECK_POSITION.y, 20, 20, 0xff0000);
+        this.turn_indicator = this.add.ellipse(DECK_POSITION.x, DECK_POSITION.y, 40, 40, 0xff0000);
 
         // Add Event Listener
         // Draw Card event
         this.input.keyboard.on('keyup-SPACE', () => {
-            if (this.state.play && this.state.turn == this.player) {
-                let selected_cards = this.state.players[this.player].cards.filter(card => card.selected);
+            // if (this.state.play && this.state.turn == this.player) { DEBUG
+            if (this.state.play) {
+                // let selected_cards = this.state.players[this.player].cards.filter(card => card.selected); DEBUG
+                let selected_cards = this.state.players[this.state.turn].cards.filter(card => card.selected);
                 let sprites_selected = selected_cards.map(card => card.sprite);
 
                 // Validate selected cards
@@ -80,14 +84,22 @@ export default class Game extends Phaser.Scene {
                         this.state.phase = validation;
                     }
 
-                    // Clear drawed card
-                    this.state.drawed.forEach((card) => {
-                        card.sprite.destroy();
-                    })
-
                     // Add seleected card to drawed
-                    this.state.drawed = selected_cards;
-                    this.state.players[this.player].cards = this.state.players[this.player].cards.filter(card => !card.selected);
+                    if (this.state.phase != THREE_CARD_DRAW) {
+                        this.state.drawed.forEach((card) => {
+                            card.sprite.destroy();
+                        })
+                        this.state.drawed = selected_cards;
+                    }
+                    else {
+                        if (selected_cards.filter(card => card.type == 'S' && card.value == 1).length == 1) {
+                            this.state.first_player = this.state.turn;
+                        }
+                        this.state.drawed.push(...selected_cards);
+                    }
+
+                    // this.state.players[this.player].cards = this.state.players[this.player].cards.filter(card => !card.selected); DEBUG
+                    this.state.players[this.state.turn].cards = this.state.players[this.state.turn].cards.filter(card => !card.selected);
 
                     // Animate selected card to drawed
                     this.tweens.add({
@@ -101,6 +113,9 @@ export default class Game extends Phaser.Scene {
                     sprites_selected.forEach(sprite => {
                         sprite.removeInteractive();
                     })
+
+                    // Next player
+                    this.state.turn = (this.state.turn + 1) % 4;
                 }
                 else { // Selected cards not valid
                     this.tweens.add({
@@ -117,18 +132,49 @@ export default class Game extends Phaser.Scene {
 
         // SKIP EVENT
         this.input.keyboard.on('keyup-ESC', () => {
-            if (this.state.turn == this.player) {
-                this.state.turn = (this.state.turn + 1) % MAX_PLAYER;
+            if (this.state.phase != THREE_CARD_DRAW) {
+                this.state.skip[this.state.turn] = true;
             }
+            this.state.turn = (this.state.turn + 1) % MAX_PLAYER;
         })
     }
 
     update(delta) {
-        // Arrange Card
         if (this.state.play) {
+            // Arrange Layout
             this.arrangeCard();
             this.showPhaseIndicator();
             this.showTurnIndicator();
+
+            // Change phase to draw anything
+            if (this.state.phase == THREE_CARD_DRAW && this.state.drawed.length == 4) {
+                this.state.phase = DRAW_ANYTHING;
+                this.state.turn = this.state.first_player;
+            }
+
+            // Check who first in next circle
+            if (this.state.skip.filter(val => val).length == 3) {
+                this.state.skip.forEach((val, index) => {
+                    if (!val) {
+                        this.state.phase = DRAW_ANYTHING;
+                        this.state.turn = index
+                    }
+                })
+                this.state.skip = [false, false, false, false];
+            }
+
+            // Skip player cannot run again in the same circle
+            if (this.state.skip[this.state.turn]) {
+                this.state.turn = (this.state.turn + 1) % 4;
+            }
+
+            // Check win condition
+            this.state.players.forEach((player) => {
+                if (player.cards.length == 0) {
+                    console.log(player + ' WIN');
+                    this.state.play = false;
+                }
+            })
         }
     }
 
@@ -170,8 +216,8 @@ export default class Game extends Phaser.Scene {
                     x,
                     y,
                     angle,
-                    duration: 200,
-                    delay: (idx + player * MAX_PLAYER_CARD) * 200,
+                    // duration: 200, DEBUG
+                    // delay: (idx + player * MAX_PLAYER_CARD) * 200, DEBUG
                 })
             }
         }
@@ -180,51 +226,70 @@ export default class Game extends Phaser.Scene {
 
     openCard() {
         this.animation.on('complete', (tween, targets) => {
-            // Sort active player card
-            this.state.players[this.player].cards.sort((a, b) => a.value - b.value)
-
-            // Open active player card
-            this.state.players[this.player].cards.forEach((card, index) => {
-                card.sprite.setTexture(`${card.key}`);
-                card.sprite.setDepth(index);
-                this.tweens.add({
-                    targets: card.sprite,
-                    x: PLAYER_POSITION[0].x + (index - Math.floor(MAX_PLAYER_CARD / 2)) * 40,
-                    duration: 200,
-                }).on('complete', () => {
-                    // Add event to choose card
+            // DEBUG ONLY
+            for (let player = 0; player < MAX_PLAYER; player++) {
+                // this.state.players[player].cards.sort((a, b) => a.value - b.value)
+                this.state.players[player].cards.forEach((card, index) => {
+                    card.sprite.setTexture(`${card.key}`);
+                    // card.sprite.setDepth(index);
                     card.sprite.setInteractive()
                         .on('pointerdown', function () {
                             card.selected = !card.selected;
-                            if (card.selected) {
-                                card.sprite.y = PLAYER_POSITION[0].y - 40;
-                            }
-                            else {
-                                card.sprite.y = PLAYER_POSITION[0].y;
-                            }
-                        })
-                    card.sprite.setInteractive()
-                        .on('pointermove', () => {
-                            if (!card.selected) {
-                                this.tweens.add({
-                                    targets: card.sprite,
-                                    y: PLAYER_POSITION[0].y - 40,
-                                    duration: 200
-                                })
-                            }
-                        })
-                    card.sprite.setInteractive()
-                        .on('pointerout', () => {
-                            if (!card.selected) {
-                                this.tweens.add({
-                                    targets: card.sprite,
-                                    y: PLAYER_POSITION[0].y,
-                                    duration: 200
-                                })
-                            }
+                            // if (card.selected) {
+                            //     card.sprite.y = PLAYER_POSITION[0].y - 40;
+                            // }
+                            // else {
+                            //     card.sprite.y = PLAYER_POSITION[0].y;
+                            // }
                         })
                 })
-            })
+            }
+
+            // Sort active player card DEBUG
+            // this.state.players[this.player].cards.sort((a, b) => a.value - b.value)
+
+            // Open active player card DEBUG
+            // this.state.players[this.player].cards.forEach((card, index) => {
+            //     card.sprite.setTexture(`${card.key}`);
+            //     card.sprite.setDepth(index);
+            //     this.tweens.add({
+            //         targets: card.sprite,
+            //         x: PLAYER_POSITION[0].x + (index - Math.floor(MAX_PLAYER_CARD / 2)) * 40,
+            //         duration: 200,
+            //     }).on('complete', () => {
+            //         // Add event to choose card
+            //         card.sprite.setInteractive()
+            //             .on('pointerdown', function () {
+            //                 card.selected = !card.selected;
+            //                 if (card.selected) {
+            //                     card.sprite.y = PLAYER_POSITION[0].y - 40;
+            //                 }
+            //                 else {
+            //                     card.sprite.y = PLAYER_POSITION[0].y;
+            //                 }
+            //             })
+            //         card.sprite.setInteractive()
+            //             .on('pointermove', () => {
+            //                 if (!card.selected) {
+            //                     this.tweens.add({
+            //                         targets: card.sprite,
+            //                         y: PLAYER_POSITION[0].y - 40,
+            //                         duration: 200
+            //                     })
+            //                 }
+            //             })
+            //         card.sprite.setInteractive()
+            //             .on('pointerout', () => {
+            //                 if (!card.selected) {
+            //                     this.tweens.add({
+            //                         targets: card.sprite,
+            //                         y: PLAYER_POSITION[0].y,
+            //                         duration: 200
+            //                     })
+            //                 }
+            //             })
+            //     })
+            // })
             this.state.play = true;
         });
     }
@@ -253,7 +318,7 @@ export default class Game extends Phaser.Scene {
             y = PLAYER_POSITION[0].y - 200
         }
         else if (this.state.turn == 1) {
-            x = PLAYER_POSITION[1].x - 200
+            x = PLAYER_POSITION[1].x + 200
             y = PLAYER_POSITION[1].y
         }
         else if (this.state.turn == 2) {
@@ -261,7 +326,7 @@ export default class Game extends Phaser.Scene {
             y = PLAYER_POSITION[2].y + 200
         }
         else if (this.state.turn == 3) {
-            x = PLAYER_POSITION[3].x + 200
+            x = PLAYER_POSITION[3].x - 200
             y = PLAYER_POSITION[3].y
         }
         this.turn_indicator.setX(x);
