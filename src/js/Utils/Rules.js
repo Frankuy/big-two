@@ -1,4 +1,6 @@
 import { THREE_CARD_DRAW, PAIR_CARD_ONLY, SINGLE_CARD_ONLY, DRAW_ANYTHING, TRIPLE_CARD_ONLY, FIVE_CARD_ONLY } from "../Constant/GamePhase";
+import { DOUBLE, FLUSH, FOUR_OF_KIND, FULL_HOUSE, STRAIGHT, STRAIGHT_FLUSH, TRIPLE } from "../Constant/Rank";
+import { getTypeValue } from "./Ranking";
 
 export function validateCard(phase, cards) {
     switch (phase) {
@@ -20,7 +22,50 @@ export function validateCard(phase, cards) {
 }
 
 export function rankingValue(cards) {
-    return 0;
+    let score = 0;
+
+    cards.forEach(card => {
+        score += (card.value - 1) * 4 + getTypeValue(card.type);
+    })
+
+    if (cards.length == 2 && pairCard(cards)) {
+        score *= DOUBLE;
+    }
+
+    if (cards.length == 3 && threeCard(cards)) {
+        score *= TRIPLE;
+    }
+
+    if (cards.length == 5) {
+        let straightFlag = straightCard(cards);
+        let flushFlag = flushCard(cards);
+        let fullHouseFlag = fullHouseCard(cards);
+        let fourOfKindFlag = fourOfKindCard(cards);
+
+        if (straightFlag && flushFlag) {
+            score *= (STRAIGHT_FLUSH + getTypeValue(cards[0].type));
+        }
+        else if (straightFlag) {
+            score *= STRAIGHT;
+        }
+        else if (flushFlag) {
+            score *= (FLUSH + getTypeValue(cards[0].type));
+        }
+        else if (fullHouseFlag) {
+            let triple_values = cards.filter(card => card.value == fullHouseFlag)
+                .map(card => card.value)
+                .reduce((acc, curr) => acc + curr);
+            score *= (FULL_HOUSE + triple_values);
+        }
+        else if (fourOfKindFlag) {
+            let four_values = cards.filter(card => card.value == fourOfKindFlag)
+                .map(card => card.value)
+                .reduce((acc, curr) => acc + curr);
+            score *= (FOUR_OF_KIND + four_values);
+        }
+    }
+
+    return score;
 }
 
 function threeCard(cards) {
@@ -79,7 +124,14 @@ function fullHouseCard(cards) {
             }
         }
     })
-    return (result[0] === 2 && result[1] === 3) || (result[0] === 3 && result[1] === 2);
+    if (result[0] === 3 && result[1] === 2) {
+        return ref;
+    }
+    else if (result[0] === 2 && result[1] === 3) {
+        return ref_2;
+    }
+    return false;
+    // return (result[0] === 2 && result[1] === 3) || (result[0] === 3 && result[1] === 2);
 }
 
 function fourOfKindCard(cards) {
@@ -100,7 +152,14 @@ function fourOfKindCard(cards) {
             }
         }
     })
-    return (result[0] === 1 && result[1] === 4) || (result[0] === 4 && result[1] === 1);
+    if (result[0] === 4 && result[1] === 1) {
+        return ref;
+    }
+    else if (result[0] === 1 && result[1] === 4) {
+        return ref_2;
+    }
+    return false;
+    // return (result[0] === 1 && result[1] === 4) || (result[0] === 4 && result[1] === 1);
 }
 
 function drawAnything(cards) {

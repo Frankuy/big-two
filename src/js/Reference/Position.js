@@ -1,9 +1,11 @@
+import { CARD_OFFSET } from '../Constant/Config';
+
 let width = window.innerWidth;
 let height = window.innerHeight;
 
 const P1_POSITION = {
     x: width / 2,
-    y: height
+    y: height - CARD_OFFSET
 }
 
 const P2_POSITION = {
