@@ -5,19 +5,25 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.prod.js ",
-    "start": "webpack serve --open --config webpack.config.js"
+    "start": "webpack serve --open --config webpack.config.js",
+    "test": "jest"
   },
   "author": "Muhammad Fikri Hizbullah",
   "license": "MIT",
   "dependencies": {
-    "html-webpack-plugin": "^5.3.2",
-    "phaser": "^3.55.2",
-    "webpack": "^5.45.1",
-    "webpack-dev-server": "^3.11.2"
+    "phaser": "^3.55.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.14.8",
+    "@babel/preset-env": "^7.14.8",
+    "babel-jest": "^27.0.6",
     "css-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.3.2",
+    "jest": "^27.0.6",
+    "jest-canvas-mock": "^2.3.1",
     "style-loader": "^3.2.1",
-    "webpack-cli": "^4.7.2"
+    "webpack": "^5.45.1",
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "^3.11.2"
   }
 }
