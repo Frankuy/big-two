@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 const path = require("path");
 
 module.exports = {
@@ -15,13 +14,6 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             template: "./src/index.html",
-        }),
-        new ImageMinimizerPlugin({
-            minimizerOptions: {
-                plugins: [
-                    ["optipng", { optimizationLevel: 7 }],
-                ],
-            },
         }),
     ],
     module: {

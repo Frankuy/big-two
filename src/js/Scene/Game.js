@@ -5,6 +5,7 @@ import Deck from "../Object/Deck";
 import { DRAW_ANYTHING, THREE_CARD_DRAW } from "../Constant/GamePhase";
 import Bot from "../Object/Bot";
 import { MAX_PLAYER } from "../Constant/Config";
+import Background from "../../assets/images/background.png";
 
 const MINIMUM_BOT_INDEX = 1;
 const MAXIMUM_BOT_INDEX = 3;
@@ -29,6 +30,9 @@ export default class Game extends Phaser.Scene {
     }
 
     preload() {
+        // Load Background
+        this.load.image("background-image", Background);
+
         // Load Card Image
         this.decks.loadImage(this);
 
@@ -42,6 +46,10 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
+        // Render Background
+        this.add.image(0, 0, "background-image").setOrigin(0, 0)
+            .setDisplaySize(window.innerWidth, window.innerHeight);
+            
         // Shuffle Deck
         this.decks.render(this);
         this.decks.shuffle();
