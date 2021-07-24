@@ -1,5 +1,5 @@
 import { DECK_POSITION, PLAYER_POSITION } from "../Reference/Position";
-import { DELAYS, DURATION, SPACE } from '../Constant/Config';
+import { DURATION, SPACE } from "../Constant/Config";
 import { rankingValue, validateCard } from "../Utils/Rules";
 import { THREE_CARD_DRAW } from "../Constant/GamePhase";
 
@@ -37,7 +37,7 @@ export default class Player {
 
     openCards(scene) {
         // Sort card
-        this.cards.sort((a, b) => a.value - b.value)
+        this.cards.sort((a, b) => a.value - b.value);
 
         // Open card
         this.cards.forEach((card, index) => {
@@ -47,39 +47,39 @@ export default class Player {
                 targets: card.sprite,
                 x: PLAYER_POSITION[this.index].x + (index - Math.floor(this.cards.length / 2)) * SPACE,
                 duration: DURATION,
-            })
+            });
 
             animation
-                .on('complete', () => {
+                .on("complete", () => {
                     // Add event to choose card
                     card.sprite.setInteractive()
-                        .on('pointerdown', () => {
+                        .on("pointerdown", () => {
                             if (scene.state.turn == this.index) {
                                 card.selected = !card.selected;
                             }
-                        })
+                        });
                     card.sprite.setInteractive()
-                        .on('pointermove', () => {
+                        .on("pointermove", () => {
                             if (!card.selected) {
                                 scene.tweens.add({
                                     targets: card.sprite,
                                     y: PLAYER_POSITION[this.index].y - SPACE,
                                     duration: DURATION
-                                })
+                                });
                             }
-                        })
+                        });
                     card.sprite.setInteractive()
-                        .on('pointerout', () => {
+                        .on("pointerout", () => {
                             if (!card.selected) {
                                 scene.tweens.add({
                                     targets: card.sprite,
                                     y: PLAYER_POSITION[this.index].y,
                                     duration: DURATION
-                                })
+                                });
                             }
-                        })
-                })
-        })
+                        });
+                });
+        });
     }
 
     drawCard(scene) {
@@ -91,28 +91,28 @@ export default class Player {
             // Open Closed Card
             selected_cards.forEach(card => {
                 card.sprite.setTexture(`${card.key}`);
-            })
+            });
 
             // Animate drawing card
             this.animation = scene.tweens.add({
                 targets: sprites_selected,
-                x: function (target, key, value, targetIndex, totalTargets, tween) {
+                x: function (target, key, value, targetIndex, totalTargets, _tween) {
                     return DECK_POSITION.x + (targetIndex - (totalTargets - 1) / 2) * 160;
                 },
                 y: DECK_POSITION.y,
                 angle: 0,
                 duration: DURATION,
-            })
+            });
 
             // Clear drawed
             if (scene.state.phase == THREE_CARD_DRAW) {
-                if (selected_cards.filter(card => card.type == 'S' && card.value == 1).length == 1) {
+                if (selected_cards.filter(card => card.type == "S" && card.value == 1).length == 1) {
                     scene.state.first_player = scene.state.turn;
                 }
                 scene.state.drawed.push(...selected_cards);
 
                 if (scene.state.drawed.length == 4) {
-                    this.animation.on('complete', function () {
+                    this.animation.on("complete", function () {
                         scene.state.drawed.forEach((card) => {
                             card.sprite.destroy();
                         });
@@ -140,11 +140,11 @@ export default class Player {
                 targets: sprites_selected,
                 y: PLAYER_POSITION[this.index].y,
                 duration: DURATION,
-            })
+            });
         }
         selected_cards.forEach(card => {
             card.selected = false;
-        })
+        });
         return false;
     }
 
@@ -156,7 +156,7 @@ export default class Player {
                     targets: this.cards[idx].sprite,
                     x: PLAYER_POSITION[this.index].x + (idx - Math.floor(number_card / 2)) * SPACE,
                     duration: DURATION,
-                })
+                });
             }
         }
     }

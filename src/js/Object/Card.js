@@ -1,5 +1,3 @@
-import Phaser from 'phaser';
-
 export default class Card {
     constructor(key, type, number, value)  {
         this.key = key;

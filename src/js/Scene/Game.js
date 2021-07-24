@@ -1,18 +1,17 @@
-import Phaser from 'phaser';
-import Player from '../Object/Player';
-import { DECK_POSITION, PLAYER_POSITION } from '../Reference/Position';
-import Deck from '../Object/Deck';
-import { DRAW_ANYTHING, PAIR_CARD_ONLY, SINGLE_CARD_ONLY, THREE_CARD_DRAW } from '../Constant/GamePhase';
-import { validateCard, rankingValue } from '../Utils/Rules';
-import Bot from '../Object/Bot';
-import { DURATION, MAX_PLAYER, SPACE } from '../Constant/Config';
+import Phaser from "phaser";
+import Player from "../Object/Player";
+import { DECK_POSITION, PLAYER_POSITION } from "../Reference/Position";
+import Deck from "../Object/Deck";
+import { DRAW_ANYTHING, THREE_CARD_DRAW } from "../Constant/GamePhase";
+import Bot from "../Object/Bot";
+import { MAX_PLAYER } from "../Constant/Config";
 
 const MINIMUM_BOT_INDEX = 1;
 const MAXIMUM_BOT_INDEX = 3;
 
 export default class Game extends Phaser.Scene {
     constructor() {
-        super({ key: 'Game' });
+        super({ key: "Game" });
         this.state = {
             play: false,
             turn: 0,
@@ -21,7 +20,7 @@ export default class Game extends Phaser.Scene {
             drawed: [],
             first_player: -1,
             three_counter: 0,
-        }
+        };
         this.player = 0;
         this.decks = new Deck();
         this.phase_indicator = null;
@@ -34,7 +33,7 @@ export default class Game extends Phaser.Scene {
         this.decks.loadImage(this);
 
         // Load Players
-        let player = new Player(`Player`, 0);
+        let player = new Player("Player", 0);
         this.state.players.push(player);
         for (let idx = MINIMUM_BOT_INDEX; idx <= MAXIMUM_BOT_INDEX; idx++) {
             player = new Bot(`Bot ${idx + 1}`, idx + 1);
@@ -52,12 +51,12 @@ export default class Game extends Phaser.Scene {
 
         // When all player already get cards, open player card
         this.animation
-            .on('complete', () => {
+            .on("complete", () => {
                 this.state.players[this.player].openCards(this);
 
                 // Render Phase Indicator
                 const style = { font: "bold 32px sans-serif", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
-                this.phase_indicator = this.add.text(DECK_POSITION.x, DECK_POSITION.y - 200, '', style).setOrigin(0.5);
+                this.phase_indicator = this.add.text(DECK_POSITION.x, DECK_POSITION.y - 200, "", style).setOrigin(0.5);
                 this.showPhaseIndicator();
 
                 // Render Turn Indicator
@@ -67,14 +66,14 @@ export default class Game extends Phaser.Scene {
                     this.add.ellipse(PLAYER_POSITION[1].x + 200, PLAYER_POSITION[1].y, 40, 40, 0xff0000),
                     this.add.ellipse(PLAYER_POSITION[2].x, PLAYER_POSITION[2].y + 200, 40, 40, 0xff0000),
                     this.add.ellipse(PLAYER_POSITION[3].x - 200, PLAYER_POSITION[3].y, 40, 40, 0xff0000),
-                ]
+                ];
                 this.showTurnIndicator();
 
                 this.state.play = true;
             });
 
         // Draw Card event
-        this.input.keyboard.on('keyup-SPACE', () => {
+        this.input.keyboard.on("keyup-SPACE", () => {
             if (this.state.play && this.state.turn == this.player) {
                 let validation = this.state.players[this.state.turn].drawCard(this);
                 if (validation) { // Player draw card
@@ -86,10 +85,10 @@ export default class Game extends Phaser.Scene {
                     this.showTurnIndicator();
                 }
             }
-        })
+        });
 
         // SKIP EVENT
-        this.input.keyboard.on('keyup-ESC', () => {
+        this.input.keyboard.on("keyup-ESC", () => {
             if (this.state.turn == this.player) {
                 this.state.players[this.state.turn].setSkip(true);
                 this.state.turn = (this.state.turn + 1) % MAX_PLAYER;
@@ -98,7 +97,7 @@ export default class Game extends Phaser.Scene {
                 this.showPhaseIndicator();
                 this.showTurnIndicator();
             }
-        })
+        });
 
         // Bot event
         this.timer = this.time.addEvent({
@@ -121,7 +120,7 @@ export default class Game extends Phaser.Scene {
                                 this.showPhaseIndicator();
                                 this.showTurnIndicator();
                             }
-                        })
+                        });
                     }
                 }
 
@@ -153,7 +152,7 @@ export default class Game extends Phaser.Scene {
                     }
                 }
             }
-        })
+        });
     }
 
     update() {
@@ -180,7 +179,7 @@ export default class Game extends Phaser.Scene {
                     indicator.setFillStyle(0xff0000, 1);
                 }
             }
-        })
+        });
     }
 
     nextTurn(gameplay) {
@@ -205,9 +204,9 @@ export default class Game extends Phaser.Scene {
     checkWin() {
         this.state.players.forEach((player) => {
             if (player.getCards().length == 0) {
-                this.phase_indicator.setText(player.name + ' WIN');
+                this.phase_indicator.setText(player.name + " WIN");
                 this.timer.destroy();
             }
-        })
+        });
     }
 }

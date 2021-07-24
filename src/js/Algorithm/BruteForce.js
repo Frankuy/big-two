@@ -33,8 +33,8 @@ function threeCard(cards) {
         else {
             card.selected = false;
         }
-        return card
-    })
+        return card;
+    });
     return result;
 }
 
@@ -44,7 +44,7 @@ function drawAnything(cards) {
             card.selected = true;
         }
         return card;
-    })
+    });
     return result;
 
 }
@@ -59,8 +59,8 @@ function singleCard(cards, constraint_cards) {
         else {
             card.selected = false;
         }
-        return card
-    })
+        return card;
+    });
     return result;
 }
 

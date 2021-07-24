@@ -1,6 +1,6 @@
-import Phaser from 'phaser';
-import Game from './js/Scene/Game';
-import './css/index.css';
+import Phaser from "phaser";
+import Game from "./js/Scene/Game";
+import "./css/index.css";
 
 let width = window.innerWidth;
 let height = window.innerHeight;
@@ -9,11 +9,11 @@ const config = {
     type: Phaser.CANVAS,
     width,
     height,
-    backgroundColor: '#35654d',
+    backgroundColor: "#35654d",
     scene: Game
 };
 
-const game = new Phaser.Game(config)
+new Phaser.Game(config);
 
 // window.addEventListener('resize', function () {
 //     width = window.innerWidth;

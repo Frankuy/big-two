@@ -1,14 +1,14 @@
-import { CLUBS, SPADES, DIAMONDS, HEARTS } from '../Constant/Rank';
+import { CLUBS, SPADES, DIAMONDS, HEARTS } from "../Constant/Rank";
 
 export function getTypeValue(type) {
     switch (type) {
-        case 'C':
+        case "C":
             return CLUBS;
-        case 'S':
+        case "S":
             return SPADES;
-        case 'D':
+        case "D":
             return DIAMONDS;
-        case 'H':
+        case "H":
             return HEARTS;
         default:
             return 0;

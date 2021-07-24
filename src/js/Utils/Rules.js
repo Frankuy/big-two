@@ -33,7 +33,7 @@ export function rankingValue(cards) {
     else if (cards.length == 2 && pairCard(cards)) {
         let val1 = (cards[0].value - 1) * 4 + getTypeValue(cards[0].type);
         let val2 = (cards[1].value - 1) * 4 + getTypeValue(cards[1].type);
-        let bonus = cards[0].type == 'S' || cards[1].type == 'S' ? 1 : 0;
+        let bonus = cards[0].type == "S" || cards[1].type == "S" ? 1 : 0;
         return (val1 + val2 + bonus) * DOUBLE;
     }
 
@@ -42,7 +42,7 @@ export function rankingValue(cards) {
         let score = 0;
         cards.forEach(card => {
             score += (card.value - 1) * 4 + getTypeValue(card.type);
-        })
+        });
         return score * TRIPLE;
     }
 
@@ -56,11 +56,11 @@ export function rankingValue(cards) {
 
         if (straightFlag && !flushFlag) { // Straight
             let score = 0;
-            let sortedCards = [].concat(cards).sort((a, b) => b.value - a.value)
+            let sortedCards = [].concat(cards).sort((a, b) => b.value - a.value);
             sortedCards.forEach(card => {
                 score += (card.value - 1) * 4;
             });
-            score += getTypeValue(sortedCards[0].type)
+            score += getTypeValue(sortedCards[0].type);
             score *= STRAIGHT;
             return score;
         }
@@ -146,7 +146,7 @@ export function straightCard(cards) {
         sorted_cards[2].value == sorted_cards[1].value + 1 &&
         sorted_cards[3].value == sorted_cards[2].value + 1 &&
         sorted_cards[4].value == sorted_cards[3].value + 1
-    )
+    );
 }
 
 export function flushCard(cards) {
@@ -156,7 +156,7 @@ export function flushCard(cards) {
 export function fullHouseCard(cards) {
     let ref = cards[0].value;
     let ref_2 = -1;
-    let result = [0, 0]
+    let result = [0, 0];
     cards.forEach((card) => {
         if (card.value === ref) {
             result[0] += 1;
@@ -170,7 +170,7 @@ export function fullHouseCard(cards) {
                 result[1] += 1;
             }
         }
-    })
+    });
     if (result[0] === 3 && result[1] === 2) {
         return ref;
     }
@@ -184,7 +184,7 @@ export function fullHouseCard(cards) {
 export function fourOfKindCard(cards) {
     let ref = cards[0].value;
     let ref_2 = -1;
-    let result = [0, 0]
+    let result = [0, 0];
     cards.forEach((card) => {
         if (card.value === ref) {
             result[0] += 1;
@@ -198,7 +198,7 @@ export function fourOfKindCard(cards) {
                 result[1] += 1;
             }
         }
-    })
+    });
     if (result[0] === 4 && result[1] === 1) {
         return ref;
     }
