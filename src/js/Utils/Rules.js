@@ -22,77 +22,124 @@ export function validateCard(phase, cards) {
 }
 
 export function rankingValue(cards) {
-    let score = 0;
+    // let score = 0;
 
-    cards.forEach(card => {
-        score += (card.value - 1) * 4 + getTypeValue(card.type);
-    })
-
-    if (cards.length == 2 && pairCard(cards)) {
-        score *= DOUBLE;
+    // Single Card
+    if (cards.length == 1) {
+        return (cards[0].value - 1) * 4 + getTypeValue(cards[0].type);
     }
 
-    if (cards.length == 3 && threeCard(cards)) {
-        score *= TRIPLE;
+    // Double Card
+    else if (cards.length == 2 && pairCard(cards)) {
+        let val1 = (cards[0].value - 1) * 4 + getTypeValue(cards[0].type);
+        let val2 = (cards[1].value - 1) * 4 + getTypeValue(cards[1].type);
+        let bonus = cards[0].type == 'S' || cards[1].type == 'S' ? 1 : 0;
+        return (val1 + val2 + bonus) * DOUBLE;
     }
 
-    if (cards.length == 5) {
+    // Triple Card
+    else if (cards.length == 3 && tripleCard(cards)) {
+        let score = 0;
+        cards.forEach(card => {
+            score += (card.value - 1) * 4 + getTypeValue(card.type);
+        })
+        return score * TRIPLE;
+    }
+
+    // Five Card
+    else if (cards.length == 5) {
         let straightFlag = straightCard(cards);
         let flushFlag = flushCard(cards);
         let fullHouseFlag = fullHouseCard(cards);
         let fourOfKindFlag = fourOfKindCard(cards);
 
-        if (straightFlag && flushFlag) {
-            score *= (STRAIGHT_FLUSH + getTypeValue(cards[0].type));
-        }
-        else if (straightFlag) {
+
+        if (straightFlag && !flushFlag) { // Straight
+            let score = 0;
+            let sortedCards = [].concat(cards).sort((a, b) => b.value - a.value)
+            sortedCards.forEach(card => {
+                score += (card.value - 1) * 4;
+            });
+            score += getTypeValue(sortedCards[0].type)
             score *= STRAIGHT;
+            return score;
         }
-        else if (flushFlag) {
+        else if (flushFlag && !straightFlag) { // Flush
+            let score = 0;
+            cards.forEach(card => {
+                score += (card.value - 1) * 4 + getTypeValue(card.type);
+            });
             score *= (FLUSH + getTypeValue(cards[0].type));
+            return score;
         }
-        else if (fullHouseFlag) {
-            let triple_values = cards.filter(card => card.value == fullHouseFlag)
-                .map(card => card.value)
+        else if (fullHouseFlag) { // Full House
+            let score = 0;
+            cards.forEach(card => {
+                score += (card.value - 1) * 4 + getTypeValue(card.type);
+            });
+            let two_values = cards.filter(card => card.value != fullHouseFlag)
+                .map(card => (card.value - 1) * 4 + getTypeValue(card.type))
                 .reduce((acc, curr) => acc + curr);
-            score *= (FULL_HOUSE + triple_values);
+
+            score -= two_values;
+            score *= FULL_HOUSE;
+            return score;
         }
-        else if (fourOfKindFlag) {
-            let four_values = cards.filter(card => card.value == fourOfKindFlag)
-                .map(card => card.value)
-                .reduce((acc, curr) => acc + curr);
-            score *= (FOUR_OF_KIND + four_values);
+        else if (fourOfKindFlag) { // Four of Kind
+            let score = 0;
+            cards.forEach(card => {
+                score += (card.value - 1) * 4 + getTypeValue(card.type);
+            });
+            let one_values = cards.filter(card => card.value != fourOfKindFlag)
+                .map(card => (card.value - 1) * 4 + getTypeValue(card.type))[0];
+
+            score -= one_values;
+            score *= FOUR_OF_KIND;
+            return score;
+        }
+        else if (straightFlag && flushFlag) { // Straight Flush
+            let score = 0;
+            cards.forEach(card => {
+                score += (card.value - 1) * 4 + getTypeValue(card.type);
+            });
+            score *= (STRAIGHT_FLUSH + getTypeValue(cards[0].type));
+            return score;
         }
     }
 
+    // Random Card
+    let score = 0;
+    cards.forEach(card => {
+        score += (card.value - 1) * 4 + getTypeValue(card.type);
+    });
     return score;
 }
 
-function threeCard(cards) {
+export function threeCard(cards) {
     return cards.filter(card => card.value == 1).length == cards.length;
 }
 
-function singleCard(cards) {
+export function singleCard(cards) {
     return cards.length == 1;
 }
 
-function pairCard(cards) {
+export function pairCard(cards) {
     return cards.length == 2 && cards[0].value == cards[1].value;
 }
 
-function tripleCard(cards) {
+export function tripleCard(cards) {
     return cards.length == 3 && cards[0].value == cards[1].value
         && cards[0].value == cards[2].value && cards[1].value == cards[2].value;
 }
 
-function fiveCard(cards) {
+export function fiveCard(cards) {
     if (cards.length == 5) {
         return straightCard(cards) || flushCard(cards) || fullHouseCard(cards) || fourOfKindCard(cards);
     }
     return false;
 }
 
-function straightCard(cards) {
+export function straightCard(cards) {
     let sorted_cards = cards.sort((a, b) => a.value - b.value);
     return (
         sorted_cards[1].value == sorted_cards[0].value + 1 &&
@@ -102,11 +149,11 @@ function straightCard(cards) {
     )
 }
 
-function flushCard(cards) {
+export function flushCard(cards) {
     return cards.filter(card => card.type == cards[0].type).length == cards.length;
 }
 
-function fullHouseCard(cards) {
+export function fullHouseCard(cards) {
     let ref = cards[0].value;
     let ref_2 = -1;
     let result = [0, 0]
@@ -134,7 +181,7 @@ function fullHouseCard(cards) {
     // return (result[0] === 2 && result[1] === 3) || (result[0] === 3 && result[1] === 2);
 }
 
-function fourOfKindCard(cards) {
+export function fourOfKindCard(cards) {
     let ref = cards[0].value;
     let ref_2 = -1;
     let result = [0, 0]
