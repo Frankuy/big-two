@@ -156,6 +156,21 @@ describe('Five Card Test', () => {
             expect(straightCard(highest_straight_flush) && flushCard(highest_straight_flush)).toBeTruthy();
         })
 
+        test('Different Number, Different Type', () => {
+            let straight_flush =  [as_hearts, king_hearts, queen_hearts, jack_hearts, ten_hearts];
+            expect(rankingValue(highest_straight_flush) > rankingValue(straight_flush)).toBeTruthy();
+        })
+
+        test('Different Number, Same Type', () => {
+            let straight_flush =  [as_spades, king_spades, queen_spades, jack_spades, ten_spades];
+            expect(rankingValue(highest_straight_flush) > rankingValue(straight_flush)).toBeTruthy();
+        })
+
+        test('Same Number, Different Type', () => {
+            let straight_flush =  [two_hearts, as_hearts, king_hearts, queen_hearts, jack_hearts];
+            expect(rankingValue(highest_straight_flush) > rankingValue(straight_flush)).toBeTruthy();
+        })
+
         test('Straight Flush vs Not Straight Flush', () => {
             expect(rankingValue(lowest_straight_flush) > rankingValue(highest_not_five)).toBeTruthy();
         })
